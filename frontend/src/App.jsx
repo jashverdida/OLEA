@@ -136,15 +136,22 @@ export default function App() {
 
         {/* Top bar */}
         <header className="flex-shrink-0 flex items-center justify-between px-8 py-4"
-                style={{ borderBottom:'1px solid rgba(255,255,255,0.06)', background:'rgba(5,8,16,0.6)', backdropFilter:'blur(16px)' }}>
+                style={{
+                  background: 'rgba(5,8,16,0.75)',
+                  backdropFilter: 'blur(20px)',
+                  boxShadow: '0 1px 0 rgba(34,211,238,0.15), 0 2px 0 rgba(168,85,247,0.06)',
+                }}>
           <div>
-            <h1 className="text-white font-bold text-base tracking-tight">O.L.E.A.</h1>
-            <p className="text-slate-600 text-[11px] font-mono">Oltek Logistics Extraction Automation</p>
+            <h1 className="text-gradient-title font-black text-lg tracking-tight leading-none">
+              O.L.E.A.
+            </h1>
+            <p className="text-slate-500 text-[11px] font-mono mt-0.5">Oltek Logistics Extraction Automation</p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full"
+               style={{ background:'rgba(52,211,153,0.10)', border:'1px solid rgba(52,211,153,0.25)' }}>
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"
-                  style={{ animation:'dot-pulse 2s ease-in-out infinite', boxShadow:'0 0 6px rgba(52,211,153,0.8)' }} />
-            <span className="text-emerald-400 text-xs font-semibold">Local Engine Online</span>
+                  style={{ animation:'dot-pulse 2s ease-in-out infinite', boxShadow:'0 0 6px rgba(52,211,153,0.9)' }} />
+            <span className="text-emerald-300 text-xs font-semibold tracking-wide">Local Engine Online</span>
           </div>
         </header>
 
@@ -156,13 +163,13 @@ export default function App() {
             <StatsRow />
           </div>
 
-          <div className="glow-divider mb-8" />
+          <div className="mb-8" style={{ height:'1px', background:'linear-gradient(90deg, transparent 0%, rgba(34,211,238,0.4) 30%, rgba(168,85,247,0.4) 70%, transparent 100%)' }} />
 
           {/* Nav section heading */}
           <div className="mb-6 flex items-center gap-3">
-            <div className="w-1 h-5 rounded-full bg-cyan-400"
-                 style={{ boxShadow:'0 0 8px rgba(34,211,238,0.7)' }} />
-            <h2 className="text-sm font-semibold text-slate-200 uppercase tracking-widest">
+            <div className="w-1 h-5 rounded-full"
+                 style={{ background:'linear-gradient(180deg, #22d3ee, #a855f7)', boxShadow:'0 0 10px rgba(34,211,238,0.6)' }} />
+            <h2 className="text-sm font-bold text-gradient-cyan uppercase tracking-widest">
               {nav === 'extraction' ? 'Extraction Engine' :
                nav === 'dashboard'  ? 'Dashboard'         :
                nav === 'history'    ? 'Contract History'  : 'Settings'}

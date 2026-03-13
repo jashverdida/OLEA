@@ -13,8 +13,12 @@ export default function Sidebar({ active = 'extraction', onNav }) {
       {/* Logo */}
       <div className="flex flex-col items-center mb-8">
         <div className="w-10 h-10 rounded-xl flex items-center justify-center"
-             style={{ background: 'linear-gradient(135deg,rgba(34,211,238,0.3),rgba(59,130,246,0.3))', border: '1px solid rgba(34,211,238,0.4)', boxShadow: '0 0 16px rgba(34,211,238,0.2)' }}>
-          <Zap size={18} className="text-cyan-400" />
+             style={{
+               background: 'linear-gradient(135deg, rgba(34,211,238,0.25) 0%, rgba(168,85,247,0.25) 100%)',
+               border: '1px solid rgba(34,211,238,0.5)',
+               boxShadow: '0 0 20px rgba(34,211,238,0.35), 0 0 40px rgba(168,85,247,0.15), inset 0 1px 0 rgba(255,255,255,0.12)',
+             }}>
+          <Zap size={18} style={{ color: '#22d3ee', filter: 'drop-shadow(0 0 5px rgba(34,211,238,0.9))' }} />
         </div>
       </div>
 
@@ -34,7 +38,8 @@ export default function Sidebar({ active = 'extraction', onNav }) {
       </nav>
 
       {/* Version */}
-      <div className="text-[9px] font-mono text-slate-600 mb-1 tracking-widest">v1.0</div>
+      <div className="text-[9px] font-mono mb-1 tracking-widest"
+           style={{ color: 'rgba(34,211,238,0.4)' }}>v1.0</div>
     </aside>
   )
 }

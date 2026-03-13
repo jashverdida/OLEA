@@ -25,7 +25,8 @@ function StatCard({ icon: Icon, label, value, sub, accentColor, glowColor }) {
   const countRef = useCountUp(value, 1400, value.includes('.') ? 1 : 0)
 
   return (
-    <div className="glass flex items-center gap-5 px-6 py-5 relative overflow-hidden">
+    <div className="glass flex items-center gap-5 px-6 py-5 relative overflow-hidden"
+         style={{ boxShadow: `0 0 0 1px rgba(${accentColor},0.18), 0 4px 24px rgba(${accentColor},0.10), inset 0 1px 0 rgba(255,255,255,0.08)` }}>
       {/* Background icon watermark */}
       <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-[0.04]">
         <Icon size={72} />
@@ -48,7 +49,7 @@ function StatCard({ icon: Icon, label, value, sub, accentColor, glowColor }) {
         <div
           className="text-2xl font-bold tabular-nums"
           ref={countRef}
-          style={{ color: `rgb(${glowColor})` }}
+          style={{ color: `rgb(${glowColor})`, textShadow: `0 0 20px rgba(${glowColor},0.5)` }}
         >
           {value}
         </div>
