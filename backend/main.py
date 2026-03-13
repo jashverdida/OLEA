@@ -15,10 +15,11 @@ import os
 import tempfile
 import time
 
-import pandas as pd
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
+from openpyxl import Workbook
+from openpyxl.styles import Alignment, Font, PatternFill
 from pydantic import BaseModel
 from typing import Any
 
@@ -115,88 +116,108 @@ def _unwrap(v: Any) -> Any:
 @app.post("/export")
 async def export_excel(payload: ExportPayload):
     """
-    Build an Excel workbook from the parsed contract data and stream it back.
-
-    Workbook structure:
-       Sheet 1 — Header      (field | value)
-       Sheet 2 — Commodities (description)
-       Sheet 3 — Rate Table  (all columns matching the OLTK template)
+    Build an Excel workbook that exactly matches the OLTK service contract
+    template (ATL0347N25 Template).  Single sheet 'Rates' with the same
+    20 columns as the reference template.
     """
+    # Pull header values once
+    carrier     = _unwrap(payload.header.get("carrier",        {})) or "OLTEK"
+    contract_id = _unwrap(payload.header.get("contract_no",    {})) or ""
+    eff_date    = _unwrap(payload.header.get("effective_date",  {})) or ""
+    exp_date    = _unwrap(payload.header.get("expiration_date", {})) or ""
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Rates"
+
+    # ------------------------------------------------------------------
+    # Header row — exact column order matching the template
+    # ------------------------------------------------------------------
+    HEADERS = [
+        "Carrier",                         # A
+        "Contract ID",                     # B
+        "effective_date",                  # C
+        "expiration_date",                 # D
+        "commodity",                       # E
+        "origin_city",                     # F
+        "origin_via_city",                 # G  (not extracted — left blank)
+        "destination_city",                # H
+        "destination_via_city",            # I
+        "service",                         # J
+        "Remarks",                         # K  (not extracted — left blank)
+        "SCOPE",                           # L
+        "BaseRate 20",                     # M
+        "BaseRate 40",                     # N
+        "BaseRate 40H",                    # O
+        "BaseRate 45",                     # P
+        "AMS(CHINA & JAPAN)",              # Q  (surcharge — left blank)
+        "(HEA) Heavy Surcharge",           # R  (surcharge — left blank)
+        "AGW",                             # S  (surcharge — left blank)
+        "RED SEA DIVERSION CHARGE(RDS).",  # T  (surcharge — left blank)
+    ]
+
+    # Column widths (characters) matching the template
+    COL_WIDTHS = [8, 13, 13, 15, 32, 20, 20, 20, 20, 10, 12, 32,
+                  12, 12, 12, 12, 20, 22, 8, 32]
+
+    # Header cell style
+    hdr_fill  = PatternFill(start_color="1F3864", end_color="1F3864", fill_type="solid")
+    hdr_font  = Font(bold=True, color="FFFFFF", name="Calibri", size=10)
+    hdr_align = Alignment(horizontal="center", vertical="center", wrap_text=True)
+    data_font = Font(name="Calibri", size=10)
+
+    ws.append(HEADERS)
+    ws.row_dimensions[1].height = 32
+    for col_idx, cell in enumerate(ws[1], start=1):
+        cell.fill  = hdr_fill
+        cell.font  = hdr_font
+        cell.alignment = hdr_align
+        ws.column_dimensions[cell.column_letter].width = COL_WIDTHS[col_idx - 1]
+
+    # ------------------------------------------------------------------
+    # Data rows
+    # ------------------------------------------------------------------
+    for rec in payload.rate_records:
+        terminal = _unwrap(rec.get("terminal", {})) or ""
+        service  = f"{terminal}/CY" if terminal else ""
+
+        row = [
+            carrier,
+            contract_id,
+            eff_date,
+            exp_date,
+            _unwrap(rec.get("commodity",    {})),   # E
+            _unwrap(rec.get("origin",       {})),   # F  origin_city
+            None,                                   # G  origin_via_city  — not extracted
+            _unwrap(rec.get("destination",  {})),   # H  destination_city
+            _unwrap(rec.get("via",          {})),   # I  destination_via_city
+            service,                                # J  CY/CY or SD/CY
+            None,                                   # K  Remarks
+            _unwrap(rec.get("trade_lane",   {})),   # L  SCOPE
+            _unwrap(rec.get("rate_20",      {})),   # M
+            _unwrap(rec.get("rate_40",      {})),   # N
+            _unwrap(rec.get("rate_40hc",    {})),   # O
+            _unwrap(rec.get("rate_45",      {})),   # P
+            None,                                   # Q  AMS
+            None,                                   # R  HEA
+            None,                                   # S  AGW
+            None,                                   # T  RDS
+        ]
+        ws.append(row)
+        for cell in ws[ws.max_row]:
+            cell.font = data_font
+
+    # ------------------------------------------------------------------
+    # Freeze the header row, auto-filter on row 1
+    # ------------------------------------------------------------------
+    ws.freeze_panes = "A2"
+    ws.auto_filter.ref = f"A1:T1"
+
     output = io.BytesIO()
-
-    with pd.ExcelWriter(output, engine="openpyxl") as writer:
-
-        # ---- Sheet 1: Header ------------------------------------------------
-        header_rows = []
-        field_labels = {
-            "contract_no":      "Contract Number",
-            "carrier":          "Carrier",
-            "shipper":          "Shipper",
-            "effective_date":   "Effective Date",
-            "expiration_date":  "Expiration Date",
-            "trade_direction":  "Trade Direction",
-        }
-        for key, label in field_labels.items():
-            cell = payload.header.get(key, {})
-            header_rows.append({
-                "Field":      label,
-                "Value":      _unwrap(cell),
-                "Confidence": cell.get("confidence", ""),
-                "Status":     cell.get("status", ""),
-            })
-
-        pd.DataFrame(header_rows).to_excel(
-            writer, sheet_name="Header", index=False
-        )
-
-        # ---- Sheet 2: Commodities -------------------------------------------
-        commodity_rows = [
-            {"Description": _unwrap(c.get("description", {}))}
-            for c in payload.commodities
-        ]
-        pd.DataFrame(commodity_rows).to_excel(
-            writer, sheet_name="Commodities", index=False
-        )
-
-        # ---- Sheet 3: Rate Table -------------------------------------------
-        rate_columns = [
-            "trade_lane", "commodity", "origin",
-            "destination", "dest_country",
-            "via", "via_country",
-            "terminal", "cargo_type", "currency",
-            "rate_20", "rate_40", "rate_40hc", "rate_45",
-        ]
-        rate_labels = {
-            "trade_lane":   "Trade Lane",
-            "commodity":    "Commodity",
-            "origin":       "Origin",
-            "destination":  "Destination",
-            "dest_country": "Cntry",
-            "via":          "Destination Via",
-            "via_country":  "Via Cntry",
-            "terminal":     "Term",
-            "cargo_type":   "Type",
-            "currency":     "Cur",
-            "rate_20":      "20'",
-            "rate_40":      "40'",
-            "rate_40hc":    "40HC",
-            "rate_45":      "45'",
-        }
-
-        flat_rows = []
-        for rec in payload.rate_records:
-            flat_rows.append({
-                rate_labels[col]: _unwrap(rec.get(col, {}))
-                for col in rate_columns
-            })
-
-        pd.DataFrame(flat_rows).to_excel(
-            writer, sheet_name="Rates", index=False
-        )
-
+    wb.save(output)
     output.seek(0)
 
-    safe_name = os.path.splitext(payload.filename)[0] or "contract"
+    safe_name     = os.path.splitext(payload.filename)[0] or "contract"
     download_name = f"{safe_name}_extracted.xlsx"
 
     return StreamingResponse(
