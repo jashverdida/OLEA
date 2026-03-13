@@ -128,10 +128,11 @@ export default function ResultsDashboard({ data, rawData, onHeaderEdit, onRateEd
 
         {/* Export button pushed to the right */}
         <button
-          onClick={onExport}
-          className="ml-auto flex items-center gap-2 px-5 py-2 rounded-lg bg-brand text-white font-semibold text-sm hover:bg-brand-light transition-colors"
+          onClick={() => onExport(data)}
+          disabled={exportBusy}
+          className="ml-auto flex items-center gap-2 px-5 py-2 rounded-lg bg-brand text-white font-semibold text-sm hover:bg-brand-light transition-colors disabled:opacity-50"
         >
-          Export Excel
+          {exportBusy ? 'Exporting…' : 'Export Excel'}
         </button>
       </div>
 

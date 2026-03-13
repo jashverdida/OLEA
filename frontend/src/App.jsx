@@ -48,6 +48,32 @@ export default function App() {
     }
   }, [])
 
+  /* ── Header field edit ──────────────────────────────────── */
+  const handleHeaderEdit = useCallback((key, value) => {
+    setEditedData(prev => {
+      const next = JSON.parse(JSON.stringify(prev))
+      if (next.header[key]) {
+        next.header[key].value      = value
+        next.header[key].status     = 'EXTRACTED'
+        next.header[key].confidence = 1.0
+      }
+      return next
+    })
+  }, [])
+
+  /* ── Rate row edit ───────────────────────────────────────── */
+  const handleRateEdit = useCallback((idx, col, value) => {
+    setEditedData(prev => {
+      const next = JSON.parse(JSON.stringify(prev))
+      if (next.rate_records[idx]?.[col]) {
+        next.rate_records[idx][col].value      = value
+        next.rate_records[idx][col].status     = 'EXTRACTED'
+        next.rate_records[idx][col].confidence = 1.0
+      }
+      return next
+    })
+  }, [])
+
   /* ── Export ─────────────────────────────────────────────── */
   const handleExport = useCallback(async (payload) => {
     setExportBusy(true)
@@ -100,6 +126,8 @@ export default function App() {
         data={editedData}
         rawData={parseResult}
         onExport={handleExport}
+        onHeaderEdit={handleHeaderEdit}
+        onRateEdit={handleRateEdit}
         onReset={handleReset}
         exportBusy={exportBusy}
       />
