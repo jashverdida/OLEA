@@ -141,21 +141,6 @@ export default function UploadZone({ onUpload }) {
         )}
       </AnimatePresence>
 
-      {/* Feature chips */}
-      <div className="flex flex-wrap justify-center gap-3">
-        {[
-          { e:'⚡', t:'< 3s processing' },
-          { e:'🔒', t:'100% local'      },
-          { e:'💵', t:'$0.00 API cost'  },
-          { e:'✏️', t:'Human-in-the-loop'},
-          { e:'📊', t:'One-click Excel' },
-        ].map(({ e, t }) => (
-          <span key={t} className="flex items-center gap-2 px-4 py-2 rounded-full text-xs text-slate-400"
-                style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)' }}>
-            {e} {t}
-          </span>
-        ))}
-      </div>
     </div>
   )
 }

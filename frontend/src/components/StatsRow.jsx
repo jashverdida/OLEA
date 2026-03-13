@@ -8,12 +8,16 @@ function useCountUp(target, duration = 1200, decimals = 0) {
     const el = ref.current
     if (!el) return
     const start = performance.now()
+    const hasComma = target.includes(',')
     const num = parseFloat(target.replace(/[^0-9.]/g, ''))
+    const format = (n) => {
+      if (hasComma) return Math.round(n).toLocaleString('en-US')
+      return n.toFixed(decimals)
+    }
     const step = (now) => {
       const p = Math.min((now - start) / duration, 1)
       const eased = 1 - Math.pow(1 - p, 3)
-      const current = (num * eased).toFixed(decimals)
-      el.textContent = target.replace(/[\d.]+/, current)
+      el.textContent = target.replace(/[\d,]+\.?\d*/, format(num * eased))
       if (p < 1) requestAnimationFrame(step)
     }
     requestAnimationFrame(step)

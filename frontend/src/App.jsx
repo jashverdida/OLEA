@@ -7,6 +7,7 @@ import Sidebar         from './components/Sidebar'
 import StatsRow        from './components/StatsRow'
 import UploadZone      from './components/UploadZone'
 import ResultsDashboard from './components/ResultsDashboard'
+import DashboardPanel  from './components/DashboardPanel'
 
 /* ── Placeholder panels for non-active nav items ── */
 function PlaceholderPanel({ title, description }) {
@@ -75,9 +76,7 @@ export default function App() {
 
   /* ── Body for active nav ────────────────────────────────── */
   const renderContent = () => {
-    if (nav === 'dashboard') return (
-      <PlaceholderPanel title="Dashboard" description="Overview metrics and contract summaries coming soon." />
-    )
+    if (nav === 'dashboard') return <DashboardPanel />
     if (nav === 'history') return (
       <PlaceholderPanel title="Contract History" description="Previously processed contracts and audit logs coming soon." />
     )
@@ -158,23 +157,28 @@ export default function App() {
         {/* Scrollable content */}
         <main className="flex-1 overflow-y-auto px-8 py-8">
 
-          {/* Stats row — always visible */}
-          <div className="mb-8">
-            <StatsRow />
-          </div>
+          {/* Stats row — visible on extraction/history/settings only */}
+          {nav !== 'dashboard' && (
+            <div className="mb-8">
+              <StatsRow />
+            </div>
+          )}
 
-          <div className="mb-8" style={{ height:'1px', background:'linear-gradient(90deg, transparent 0%, rgba(34,211,238,0.4) 30%, rgba(168,85,247,0.4) 70%, transparent 100%)' }} />
+          {nav !== 'dashboard' && (
+            <div className="mb-8" style={{ height:'1px', background:'linear-gradient(90deg, transparent 0%, rgba(34,211,238,0.4) 30%, rgba(168,85,247,0.4) 70%, transparent 100%)' }} />
+          )}
 
           {/* Nav section heading */}
+          {nav !== 'dashboard' && (
           <div className="mb-6 flex items-center gap-3">
             <div className="w-1 h-5 rounded-full"
                  style={{ background:'linear-gradient(180deg, #22d3ee, #a855f7)', boxShadow:'0 0 10px rgba(34,211,238,0.6)' }} />
             <h2 className="text-sm font-bold text-gradient-cyan uppercase tracking-widest">
               {nav === 'extraction' ? 'Extraction Engine' :
-               nav === 'dashboard'  ? 'Dashboard'         :
                nav === 'history'    ? 'Contract History'  : 'Settings'}
             </h2>
           </div>
+          )}
 
           {/* Main panel with error toast */}
           <AnimatePresence>
