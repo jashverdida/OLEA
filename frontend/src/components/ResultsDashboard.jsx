@@ -57,7 +57,7 @@ function FieldRow({ label, field, onEdit }) {
   );
 }
 
-export default function ResultsDashboard({ data, rawData, onHeaderEdit, onRateEdit, onExport }) {
+export default function ResultsDashboard({ data, rawData, onHeaderEdit, onRateEdit, onExport, exportBusy = false }) {
   const [activeTab, setActiveTab] = useState("header");
 
   const headerLabels = {
