@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import axios from 'axios'
 import { motion, AnimatePresence } from 'framer-motion'
 import { AlertCircle, X } from 'lucide-react'
@@ -28,6 +28,14 @@ export default function App() {
   const [editedData,   setEditedData]   = useState(null)
   const [errorMsg,     setErrorMsg]     = useState('')
   const [exportBusy,   setExportBusy]   = useState(false)
+  const [dashScrolled, setDashScrolled] = useState(false)
+  const mainRef = useRef(null)
+
+  /* Reset scroll + header state whenever the nav tab changes */
+  useEffect(() => {
+    setDashScrolled(false)
+    if (mainRef.current) mainRef.current.scrollTop = 0
+  }, [nav])
 
   /* ── Upload ─────────────────────────────────────────────── */
   const handleUpload = useCallback(async (file) => {
@@ -100,6 +108,11 @@ export default function App() {
     setErrorMsg('')
   }, [])
 
+  /* ── Dashboard scroll tracking ───────────────────────────── */
+  const handleMainScroll = useCallback((e) => {
+    setDashScrolled(e.currentTarget.scrollTop > 72)
+  }, [])
+
   /* ── Body for active nav ────────────────────────────────── */
   const renderContent = () => {
     if (nav === 'dashboard') return <DashboardPanel />
@@ -144,6 +157,8 @@ export default function App() {
     return <UploadZone onUpload={handleUpload} />
   }
 
+  const isDash = nav === 'dashboard'
+
   return (
     <div className="relative flex h-screen overflow-hidden bg-[#050810]">
 
@@ -161,13 +176,19 @@ export default function App() {
       {/* ── Main area ───────────────────────────────── */}
       <div className="relative z-10 flex flex-col flex-1 ml-[72px] overflow-hidden">
 
-        {/* Top bar */}
-        <header className="flex-shrink-0 flex items-center justify-between px-8 py-4"
-                style={{
-                  background: 'rgba(5,8,16,0.75)',
-                  backdropFilter: 'blur(20px)',
-                  boxShadow: '0 1px 0 rgba(34,211,238,0.15), 0 2px 0 rgba(168,85,247,0.06)',
-                }}>
+        {/* Top bar — fixed overlay on Dashboard, normal flow elsewhere */}
+        <header
+          className={`flex items-center justify-between px-8 py-4 z-20 ${isDash ? 'absolute inset-x-0 top-0' : 'flex-shrink-0'}`}
+          style={{
+            background: 'rgba(5,8,16,0.88)',
+            backdropFilter: 'blur(24px)',
+            boxShadow: '0 1px 0 rgba(34,211,238,0.12)',
+            ...(isDash && {
+              transform: dashScrolled ? 'translateY(0)' : 'translateY(-110%)',
+              transition: 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+            }),
+          }}
+        >
           <div>
             <h1 className="text-gradient-title font-black text-lg tracking-tight leading-none">
               O.L.E.A.
@@ -182,30 +203,34 @@ export default function App() {
           </div>
         </header>
 
-        {/* Scrollable content */}
-        <main className="flex-1 overflow-y-auto px-8 py-8">
+        {/* Scrollable content — no padding on dashboard (hero is full-bleed) */}
+        <main
+          ref={mainRef}
+          className={`flex-1 overflow-y-auto ${isDash ? '' : 'px-8 py-8'}`}
+          onScroll={handleMainScroll}
+        >
 
           {/* Stats row — visible on extraction/history/settings only */}
-          {nav !== 'dashboard' && (
+          {!isDash && (
             <div className="mb-8">
               <StatsRow />
             </div>
           )}
 
-          {nav !== 'dashboard' && (
+          {!isDash && (
             <div className="mb-8" style={{ height:'1px', background:'linear-gradient(90deg, transparent 0%, rgba(34,211,238,0.4) 30%, rgba(168,85,247,0.4) 70%, transparent 100%)' }} />
           )}
 
           {/* Nav section heading */}
-          {nav !== 'dashboard' && (
-          <div className="mb-6 flex items-center gap-3">
-            <div className="w-1 h-5 rounded-full"
-                 style={{ background:'linear-gradient(180deg, #22d3ee, #a855f7)', boxShadow:'0 0 10px rgba(34,211,238,0.6)' }} />
-            <h2 className="text-sm font-bold text-gradient-cyan uppercase tracking-widest">
-              {nav === 'extraction' ? 'Extraction Engine' :
-               nav === 'history'    ? 'Contract History'  : 'Settings'}
-            </h2>
-          </div>
+          {!isDash && (
+            <div className="mb-6 flex items-center gap-3">
+              <div className="w-1 h-5 rounded-full"
+                   style={{ background:'linear-gradient(180deg, #22d3ee, #a855f7)', boxShadow:'0 0 10px rgba(34,211,238,0.6)' }} />
+              <h2 className="text-sm font-bold text-gradient-cyan uppercase tracking-widest">
+                {nav === 'extraction' ? 'Extraction Engine' :
+                 nav === 'history'    ? 'Contract History'  : 'Settings'}
+              </h2>
+            </div>
           )}
 
           {/* Main panel with error toast */}
