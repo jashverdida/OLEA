@@ -8,18 +8,8 @@ import StatsRow        from './components/StatsRow'
 import UploadZone      from './components/UploadZone'
 import ResultsDashboard from './components/ResultsDashboard'
 import DashboardPanel  from './components/DashboardPanel'
-
-/* ── Placeholder panels for non-active nav items ── */
-function PlaceholderPanel({ title, description }) {
-  return (
-    <motion.div initial={{ opacity:0, y:12 }} animate={{ opacity:1, y:0 }}
-      className="flex flex-col items-center justify-center h-96 gap-4">
-      <div className="text-5xl opacity-20">🚧</div>
-      <h2 className="text-white font-semibold text-xl">{title}</h2>
-      <p className="text-slate-500 text-sm max-w-md text-center">{description}</p>
-    </motion.div>
-  )
-}
+import ContractHistory from './components/ContractHistory'
+import SettingsPanel   from './components/SettingsPanel'
 
 export default function App() {
   const [nav,          setNav]          = useState('extraction')
@@ -116,12 +106,8 @@ export default function App() {
   /* ── Body for active nav ────────────────────────────────── */
   const renderContent = () => {
     if (nav === 'dashboard') return <DashboardPanel />
-    if (nav === 'history') return (
-      <PlaceholderPanel title="Contract History" description="Previously processed contracts and audit logs coming soon." />
-    )
-    if (nav === 'settings') return (
-      <PlaceholderPanel title="Settings" description="Parser configuration and output template management coming soon." />
-    )
+    if (nav === 'history')  return <ContractHistory />
+    if (nav === 'settings') return <SettingsPanel />
 
     /* Extraction Engine */
     if (appState === 'uploading') return (
@@ -255,6 +241,36 @@ export default function App() {
               {renderContent()}
             </motion.div>
           </AnimatePresence>
+
+          {/* Footer — non-dashboard pages */}
+          {!isDash && (
+            <div className="mt-16 pt-8" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+              <div className="flex flex-col items-center gap-5">
+                <p className="text-[11px] font-mono uppercase tracking-[0.4em] text-slate-700 text-center">
+                  Precision Extraction. Zero Cost. Total Control.
+                </p>
+                <div className="w-full flex items-center gap-5">
+                  <div className="flex-1 h-px" style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.05))' }} />
+                  <span className="text-[10px] font-mono font-bold tracking-[0.3em] text-slate-700">O.L.E.A.</span>
+                  <div className="flex-1 h-px" style={{ background: 'linear-gradient(90deg, rgba(255,255,255,0.05), transparent)' }} />
+                </div>
+                <div className="flex flex-col items-center gap-2">
+                  <p className="text-[11px] text-slate-600 font-mono">
+                    Built with precision by{' '}
+                    <span className="text-slate-500 font-semibold">Team JAE</span>
+                  </p>
+                  <div className="flex items-center gap-4 text-[10px] font-mono text-slate-700">
+                    <span>Jashmine Verdida</span>
+                    <span className="w-px h-3 bg-slate-800" />
+                    <span>Eijay Pepito</span>
+                  </div>
+                  <p className="text-[9px] font-mono text-slate-800 mt-1 uppercase tracking-widest">
+                    © 2026 OLTEK Group · All rights reserved
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </main>
       </div>
     </div>

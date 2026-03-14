@@ -1,5 +1,54 @@
 import React, { useState } from "react";
 import RateTable from "./RateTable.jsx";
+import { motion } from "framer-motion";
+
+function ConfidenceRing({ value }) {
+  const r     = 44
+  const circ  = 2 * Math.PI * r          // 276.46
+  const color = value >= 0.85 ? '#4ade80' : value >= 0.6 ? '#facc15' : '#f87171'
+  const pct   = Math.round(value * 100)
+
+  return (
+    <div className="flex items-center gap-6">
+      <div className="relative w-28 h-28 flex-shrink-0">
+        <svg viewBox="0 0 112 112" width="112" height="112" style={{ transform: 'rotate(-90deg)' }}>
+          {/* Track */}
+          <circle cx="56" cy="56" r={r} fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="8" />
+          {/* Arc */}
+          <motion.circle
+            cx="56" cy="56" r={r}
+            fill="none" stroke={color} strokeWidth="8"
+            strokeLinecap="round"
+            strokeDasharray={circ}
+            initial={{ strokeDashoffset: circ }}
+            animate={{ strokeDashoffset: circ * (1 - value) }}
+            transition={{ duration: 1.1, ease: 'easeOut', delay: 0.3 }}
+          />
+        </svg>
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <motion.span
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }}
+            className="text-xl font-bold font-mono" style={{ color }}
+          >{pct}%</motion.span>
+          <span className="text-[9px] text-slate-600 uppercase tracking-wider mt-0.5">conf.</span>
+        </div>
+      </div>
+      <div>
+        <p className="text-sm font-semibold text-slate-300 mb-1">Extraction Confidence</p>
+        <p className="text-xs text-slate-600 leading-relaxed max-w-xs">
+          {value >= 0.85
+            ? 'All critical fields extracted with high certainty.'
+            : value >= 0.6
+            ? 'Some fields are partial — review before exporting.'
+            : 'Low confidence — manual review recommended.'}
+        </p>
+        <p className="text-[10px] text-slate-700 mt-2">
+          Fields marked PARTIAL or MISSING can be edited inline.
+        </p>
+      </div>
+    </div>
+  )
+}
 
 function FieldRow({ label, field, onEdit }) {
   const [editing, setEditing] = useState(false);
@@ -69,41 +118,47 @@ export default function ResultsDashboard({ data, rawData, onHeaderEdit, onRateEd
     trade_direction:  "Trade Direction",
   };
 
-  const overallConf = rawData?.overall_confidence ?? 0;
-  const confColor   = overallConf >= 0.85 ? "text-green-400" : overallConf >= 0.6 ? "text-yellow-400" : "text-red-400";
+  const overallConf = rawData?.overall_confidence ?? 0
+
+  const hrsSaved   = ((data.rate_records?.length ?? 0) * 25 / 3600).toFixed(1)
+  const llmCost    = (((rawData?.page_count ?? 0) * 0.02)).toFixed(2)
 
   return (
     <div className="space-y-6">
-      {/* ROI Stats Row */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      {/* Stats Row */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         {[
-          { label: "Processing Time",   value: `${(rawData.processing_time_ms / 1000).toFixed(3)}s`,  color: "blue"  },
-          { label: "API Cost Incurred", value: "$0.00",                                                color: "green" },
-          { label: "Pages Parsed",      value: String(rawData.page_count ?? "\u2014"),                      color: "blue"  },
-          { label: "Rate Rows Found",   value: String(data.rate_records?.length ?? 0),                 color: "blue"  },
+          { label: "Processing Time",    value: `${(rawData.processing_time_ms / 1000).toFixed(2)}s`, color: "cyan"  },
+          { label: "API Cost",           value: "$0.00",                                               color: "green" },
+          { label: "Pages Parsed",       value: String(rawData.page_count ?? "—"),                     color: "cyan"  },
+          { label: "Rate Rows Found",    value: String(data.rate_records?.length ?? 0),                color: "cyan"  },
+          { label: "Manual Entry Saved", value: `${hrsSaved} hrs`,                                     color: "purple"},
+          { label: "LLM Cost Avoided",   value: `$${llmCost}`,                                         color: "amber" },
         ].map(({ label, value, color }) => (
-          <div key={label} className={`bg-gray-900 border border-gray-800 rounded-xl p-4 flex flex-col gap-1`}>
-            <span className="text-xs text-gray-500 uppercase tracking-wider">{label}</span>
-            <span className={`text-2xl font-bold font-mono ${color === "green" ? "text-green-400" : "text-brand-light"}`}>{value}</span>
+          <div key={label} className="glass rounded-xl p-4 flex flex-col gap-1"
+               style={{ boxShadow: `0 0 0 1px rgba(${
+                 color==='cyan'?'34,211,238':color==='green'?'52,211,153':color==='purple'?'168,85,247':'251,191,36'
+               },0.15)` }}>
+            <span className="text-[10px] text-slate-500 uppercase tracking-wider leading-tight">{label}</span>
+            <span className="text-xl font-bold font-mono" style={{ color:
+              color==='cyan'?'rgba(34,211,238,0.9)':color==='green'?'rgba(52,211,153,0.9)':color==='purple'?'rgba(168,85,247,0.9)':'rgba(251,191,36,0.9)'
+            }}>{value}</span>
           </div>
         ))}
       </div>
 
-      {/* Overall confidence bar */}
-      <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-sm text-gray-400">Overall Extraction Confidence</span>
-          <span className={`text-lg font-bold font-mono ${confColor}`}>{(overallConf * 100).toFixed(1)}%</span>
-        </div>
-        <div className="h-2 bg-gray-800 rounded-full overflow-hidden">
-          <div
-            className={`h-full rounded-full transition-all duration-700 ${overallConf >= 0.85 ? "bg-green-500" : overallConf >= 0.6 ? "bg-yellow-500" : "bg-red-500"}`}
-            style={{ width: `${overallConf * 100}%` }}
-          />
-        </div>
-        <p className="text-xs text-gray-600 mt-2">
-          Fields marked PARTIAL or MISSING can be edited inline before export.
-        </p>
+      {/* LLM cost context strip */}
+      <div className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-mono"
+           style={{ background:'rgba(251,191,36,0.05)', border:'1px solid rgba(251,191,36,0.15)' }}>
+        <span className="text-amber-400 font-semibold">⚡ Zero-cost advantage</span>
+        <span className="text-slate-600">—</span>
+        <span className="text-slate-500">Equivalent GPT-4 extraction would cost approx. <span className="text-amber-300 font-semibold">${llmCost}</span> per document at scale.</span>
+        <span className="ml-auto text-slate-700">Your cost: <span className="text-emerald-400 font-semibold">$0.00</span></span>
+      </div>
+
+      {/* Confidence ring */}
+      <div className="glass rounded-xl p-5">
+        <ConfidenceRing value={overallConf} />
       </div>
 
       {/* Tab bar */}

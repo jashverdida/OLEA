@@ -61,39 +61,139 @@ export default function DashboardPanel() {
           </div>
         </div>
 
-        {/* Centre: wordmark */}
-        <div className="relative flex-1 flex flex-col justify-center py-12">
-          <motion.p
-            initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
-            className="text-[11px] font-mono uppercase tracking-[0.35em] text-slate-500 mb-8"
-          >
-            Contract Intelligence Platform
-          </motion.p>
+        {/* Centre: two-column — wordmark left, extraction preview right */}
+        <div className="relative flex-1 grid grid-cols-2 items-center gap-16 py-12">
 
-          <motion.h1
-            initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
-            className="font-black leading-none text-white mb-6 select-none"
-            style={{ fontSize: 'clamp(5rem, 12vw, 9rem)', letterSpacing: '-0.02em' }}
-          >
-            O.L.E.A.
-          </motion.h1>
+          {/* Left: wordmark */}
+          <div className="flex flex-col">
+            <motion.p
+              initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
+              className="text-[11px] font-mono uppercase tracking-[0.35em] text-slate-500 mb-8"
+            >
+              Contract Intelligence Platform
+            </motion.p>
 
-          <motion.p
-            initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}
-            className="text-slate-400 font-light mb-5"
-            style={{ fontSize: 'clamp(1rem, 2vw, 1.375rem)' }}
-          >
-            Oltek Logistics Extraction Automation
-          </motion.p>
+            <motion.h1
+              initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
+              className="font-black leading-none text-white mb-6 select-none"
+              style={{ fontSize: 'clamp(5rem, 12vw, 9rem)', letterSpacing: '-0.02em' }}
+            >
+              O.L.E.A.
+            </motion.h1>
 
-          <motion.p
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}
-            className="text-sm text-slate-600 max-w-lg leading-relaxed"
-          >
-            Intelligent PDF extraction for OLTK service contracts. Processes header
-            fields, commodity declarations, and rate tables in under 3 seconds —
-            entirely on-premise, at zero API cost.
-          </motion.p>
+            <motion.p
+              initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}
+              className="text-slate-400 font-light mb-5"
+              style={{ fontSize: 'clamp(1rem, 2vw, 1.375rem)' }}
+            >
+              Oltek Logistics Extraction Automation
+            </motion.p>
+
+            <motion.p
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}
+              className="text-sm text-slate-600 max-w-lg leading-relaxed"
+            >
+              Intelligent PDF extraction for Oltek service contracts. Processes header
+              fields, commodity declarations, and rate tables in under 3 seconds —
+              entirely on-premise, at zero API cost.
+            </motion.p>
+          </div>
+
+          {/* Right: floating glowing hexagon */}
+          <div className="flex items-center justify-center">
+            <motion.div
+              className="relative"
+              animate={{ y: [0, -16, 0] }}
+              transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
+            >
+              {/* Ambient glow bloom */}
+              <div style={{
+                position: 'absolute', inset: '-60px',
+                background: 'radial-gradient(ellipse at center, rgba(34,211,238,0.07) 0%, transparent 68%)',
+                pointerEvents: 'none',
+              }} />
+
+              <motion.svg
+                initial={{ opacity: 0, scale: 0.88 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.4, duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+                viewBox="0 0 320 320" width="320" height="320"
+                style={{ overflow: 'visible' }}
+              >
+                <defs>
+                  <filter id="hex-glow" x="-25%" y="-25%" width="150%" height="150%">
+                    <feGaussianBlur stdDeviation="5" result="blur" />
+                    <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+                  </filter>
+                  <filter id="inner-glow" x="-20%" y="-20%" width="140%" height="140%">
+                    <feGaussianBlur stdDeviation="2.5" result="blur" />
+                    <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+                  </filter>
+                </defs>
+
+                {/* Outermost dashed ring — slow spin */}
+                <g style={{ transformOrigin: '160px 160px', animation: 'hex-spin-cw 40s linear infinite' }}>
+                  <polygon
+                    points="310,160 235,289.9 85,289.9 10,160 85,30.1 235,30.1"
+                    fill="none" stroke="rgba(34,211,238,0.15)" strokeWidth="1" strokeDasharray="7,6"
+                  />
+                </g>
+
+                {/* Mid ring — counter-spin, slightly offset */}
+                <g style={{ transformOrigin: '160px 160px', animation: 'hex-spin-ccw 25s linear infinite' }}>
+                  <polygon
+                    points="290,160 227.5,270 92.5,270 30,160 92.5,50 227.5,50"
+                    fill="none" stroke="rgba(168,85,247,0.1)" strokeWidth="1" strokeDasharray="4,8"
+                  />
+                </g>
+
+                {/* Inner solid hexagon + text — hover to expand & glow */}
+                <motion.g
+                  whileHover={{ scale: 1.08, filter: 'drop-shadow(0 0 20px rgba(34,211,238,0.75))' }}
+                  style={{ transformOrigin: '160px 160px', cursor: 'pointer', filter: 'none' }}
+                  transition={{ duration: 0.35, ease: 'easeOut' }}
+                >
+                  <polygon
+                    points="270,160 215,255.26 105,255.26 50,160 105,64.74 215,64.74"
+                    fill="rgba(6,10,22,0.96)"
+                    stroke="rgba(34,211,238,0.5)"
+                    strokeWidth="1.5"
+                  />
+                  <polygon
+                    points="270,160 215,255.26 105,255.26 50,160 105,64.74 215,64.74"
+                    fill="url(#hex-face)"
+                  />
+
+                  {/* Text: eyebrow label */}
+                  <text x="160" y="115" textAnchor="middle"
+                    fill="rgba(100,116,139,0.6)" fontSize="9" fontFamily="ui-monospace,monospace"
+                    letterSpacing="4">AUTOMATING</text>
+
+                  {/* Text: main heading */}
+                  <text x="160" y="152" textAnchor="middle"
+                    fill="rgba(255,255,255,0.92)" fontSize="27" fontFamily="ui-sans-serif,system-ui,sans-serif"
+                    fontWeight="800" letterSpacing="-0.5">Contract</text>
+                  <text x="160" y="184" textAnchor="middle"
+                    fill="rgba(255,255,255,0.92)" fontSize="27" fontFamily="ui-sans-serif,system-ui,sans-serif"
+                    fontWeight="800" letterSpacing="-0.5">Intelligence</text>
+
+                </motion.g>
+
+                <defs>
+                  <radialGradient id="hex-face" cx="50%" cy="35%" r="55%">
+                    <stop offset="0%" stopColor="rgba(34,211,238,0.06)" />
+                    <stop offset="100%" stopColor="rgba(0,0,0,0)" />
+                  </radialGradient>
+                </defs>
+              </motion.svg>
+
+              <style>{`
+                @keyframes hex-spin-cw  { from { transform: rotate(0deg) }   to { transform: rotate(360deg)  } }
+                @keyframes hex-spin-ccw { from { transform: rotate(0deg) }   to { transform: rotate(-360deg) } }
+              `}</style>
+            </motion.div>
+          </div>
+
         </div>
 
         {/* Bottom row: quick stats + scroll cue */}
@@ -243,6 +343,42 @@ export default function DashboardPanel() {
 
         </div>
       </div>
+
+      {/* ── Footer ────────────────────────────────────────────────────── */}
+      <div className="px-12 py-10" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+        <div className="flex flex-col items-center gap-6">
+
+          {/* Motto */}
+          <p className="text-[11px] font-mono uppercase tracking-[0.4em] text-slate-600 text-center">
+            Precision Extraction. Zero Cost. Total Control.
+          </p>
+
+          {/* Divider with O.L.E.A. centre mark */}
+          <div className="w-full flex items-center gap-5">
+            <div className="flex-1 h-px" style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.06))' }} />
+            <span className="text-[10px] font-mono font-bold tracking-[0.3em] text-slate-700">O.L.E.A.</span>
+            <div className="flex-1 h-px" style={{ background: 'linear-gradient(90deg, rgba(255,255,255,0.06), transparent)' }} />
+          </div>
+
+          {/* Credits */}
+          <div className="flex flex-col items-center gap-2">
+            <p className="text-[11px] text-slate-600 font-mono">
+              Built with precision by{' '}
+              <span className="text-slate-400 font-semibold">Team JAE</span>
+            </p>
+            <div className="flex items-center gap-4 text-[10px] font-mono text-slate-700">
+              <span>Jashmine Verdida</span>
+              <span className="w-px h-3 bg-slate-800" />
+              <span>Eijay Pepito</span>
+            </div>
+            <p className="text-[9px] font-mono text-slate-800 mt-1 uppercase tracking-widest">
+              © 2026 OLTEK Group · All rights reserved
+            </p>
+          </div>
+
+        </div>
+      </div>
+
     </div>
   )
 }
