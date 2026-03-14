@@ -187,7 +187,22 @@ export default function ResultsDashboard({ data, rawData, onHeaderEdit, onRateEd
           disabled={exportBusy}
           className="ml-auto flex items-center gap-2 px-5 py-2 rounded-lg bg-brand text-white font-semibold text-sm hover:bg-brand-light transition-colors disabled:opacity-50"
         >
-          {exportBusy ? 'Exporting…' : 'Export Excel'}
+          {exportBusy ? (
+            <span className="flex flex-row items-center gap-2">
+              <svg className="w-5 h-5 animate-spin text-current" viewBox="0 0 20 20" fill="none">
+                <circle
+                  className="opacity-20"
+                  cx="10" cy="10" r="8" stroke="currentColor" strokeWidth="4" />
+                <path
+                  d="M18 10a8 8 0 01-8 8"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                  strokeLinecap="round"
+                />
+              </svg>
+              <span>Exporting…</span>
+            </span>
+          ) : 'Export Excel'}
         </button>
       </div>
 

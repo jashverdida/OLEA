@@ -11,6 +11,10 @@ import DashboardPanel  from './components/DashboardPanel'
 import ContractHistory from './components/ContractHistory'
 import SettingsPanel   from './components/SettingsPanel'
 
+import LoginPage from './components/LoginPage'
+import RegisterPage from './components/RegisterPage'
+import ForgotPasswordPage from './components/ForgotPasswordPage'
+
 export default function App() {
   const [nav,          setNav]          = useState('extraction')
   const [appState,     setAppState]     = useState('idle')
@@ -19,7 +23,36 @@ export default function App() {
   const [errorMsg,     setErrorMsg]     = useState('')
   const [exportBusy,   setExportBusy]   = useState(false)
   const [dashScrolled, setDashScrolled] = useState(false)
+  const [authPage, setAuthPage] = useState('login'); // 'login' | 'register' | 'forgot'
+  const [isAuth, setIsAuth] = useState(false); // fake auth state for demo
+  const [showLogoutPopover, setShowLogoutPopover] = useState(false);
+  const logoutBtnRef = useRef(null);
+  const popoverRef = useRef(null);
+
+  // Click outside to close popover
+  useEffect(() => {
+    if (!showLogoutPopover) return;
+    function handleClick(e) {
+      if (
+        popoverRef.current &&
+        !popoverRef.current.contains(e.target) &&
+        logoutBtnRef.current &&
+        !logoutBtnRef.current.contains(e.target)
+      ) {
+        setShowLogoutPopover(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [showLogoutPopover]);
   const mainRef = useRef(null)
+
+  // Logout handler
+  const handleLogout = () => {
+    setIsAuth(false);
+    setAuthPage('login');
+    setShowLogoutModal(false);
+  }
 
   /* Reset scroll + header state whenever the nav tab changes */
   useEffect(() => {
@@ -103,7 +136,21 @@ export default function App() {
     setDashScrolled(e.currentTarget.scrollTop > 72)
   }, [])
 
-  /* ── Body for active nav ────────────────────────────────── */
+
+  // ── Auth Pages ──
+  if (!isAuth) {
+    if (authPage === 'login') {
+      return <LoginPage onNavigate={page => setAuthPage(page)} onLogin={() => setIsAuth(true)} />;
+    }
+    if (authPage === 'register') {
+      return <RegisterPage onNavigate={page => setAuthPage(page)} />;
+    }
+    if (authPage === 'forgot') {
+      return <ForgotPasswordPage onNavigate={page => setAuthPage(page)} />;
+    }
+  }
+
+  // ── Main App Content ──
   const renderContent = () => {
     if (nav === 'dashboard') return <DashboardPanel />
     if (nav === 'history')  return <ContractHistory />
@@ -181,11 +228,52 @@ export default function App() {
             </h1>
             <p className="text-slate-500 text-[11px] font-mono mt-0.5">Oltek Logistics Extraction Automation</p>
           </div>
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full"
-               style={{ background:'rgba(52,211,153,0.10)', border:'1px solid rgba(52,211,153,0.25)' }}>
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"
-                  style={{ animation:'dot-pulse 2s ease-in-out infinite', boxShadow:'0 0 6px rgba(52,211,153,0.9)' }} />
-            <span className="text-emerald-300 text-xs font-semibold tracking-wide">Local Engine Online</span>
+          <div className="flex items-center gap-4">
+            {/* Status badge */}
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full"
+                 style={{ background:'rgba(52,211,153,0.10)', border:'1px solid rgba(52,211,153,0.25)' }}>
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"
+                    style={{ animation:'dot-pulse 2s ease-in-out infinite', boxShadow:'0 0 6px rgba(52,211,153,0.9)' }} />
+              <span className="text-emerald-300 text-xs font-semibold tracking-wide">Local Engine Online</span>
+            </div>
+            {/* Logout button */}
+            <div className="relative">
+              <button
+                ref={logoutBtnRef}
+                onClick={() => setShowLogoutPopover(v => !v)}
+                className="px-4 py-1.5 rounded-lg font-semibold text-sm border border-red-500 text-red-300 bg-transparent hover:bg-red-900/30 hover:text-white transition-colors shadow-sm"
+                style={{ minWidth: 90 }}
+              >
+                Logout
+              </button>
+              {/* Logout Popover */}
+              {showLogoutPopover && (
+                <div
+                  ref={popoverRef}
+                  className="absolute right-0 mt-2 w-64 bg-[#101624] border border-[var(--border)] rounded-lg shadow-2xl z-50 flex flex-col items-stretch animate-fadein"
+                  style={{ top: '100%' }}
+                >
+                  <div className="px-5 pt-4 pb-3 text-base font-normal text-slate-100 text-center select-none" style={{fontWeight: 500}}>
+                    Are you sure you want to logout?
+                  </div>
+                  <div className="flex flex-row gap-3 px-4 pb-4">
+                    <button
+                      onClick={handleLogout}
+                      className="flex-1 py-2 rounded-md font-semibold text-sm bg-emerald-400 text-[#101624] hover:bg-emerald-300 transition-colors border-none shadow"
+                    >
+                      Confirm
+                    </button>
+                    <button
+                      onClick={() => setShowLogoutPopover(false)}
+                      className="flex-1 py-2 rounded-md font-medium text-sm border border-[var(--border)] text-slate-200 bg-transparent hover:bg-slate-700/40 transition-colors shadow-sm"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
           </div>
         </header>
 
