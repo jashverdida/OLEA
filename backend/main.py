@@ -134,31 +134,26 @@ async def export_excel(payload: ExportPayload):
     # Header row — exact column order matching the template
     # ------------------------------------------------------------------
     HEADERS = [
-        "Carrier",                         # A
-        "Contract ID",                     # B
-        "effective_date",                  # C
-        "expiration_date",                 # D
-        "commodity",                       # E
-        "origin_city",                     # F
-        "origin_via_city",                 # G  (not extracted — left blank)
-        "destination_city",                # H
-        "destination_via_city",            # I
-        "service",                         # J
-        "Remarks",                         # K  (not extracted — left blank)
-        "SCOPE",                           # L
-        "BaseRate 20",                     # M
-        "BaseRate 40",                     # N
-        "BaseRate 40H",                    # O
-        "BaseRate 45",                     # P
-        "AMS(CHINA & JAPAN)",              # Q  (surcharge — left blank)
-        "(HEA) Heavy Surcharge",           # R  (surcharge — left blank)
-        "AGW",                             # S  (surcharge — left blank)
-        "RED SEA DIVERSION CHARGE(RDS).",  # T  (surcharge — left blank)
+        "Carrier",              # A
+        "Contract ID",          # B
+        "effective_date",       # C
+        "expiration_date",      # D
+        "commodity",            # E
+        "origin_city",          # F
+        "origin_via_city",      # G  (not extracted — blank)
+        "destination_city",     # H
+        "destination_via_city", # I
+        "service",              # J
+        "Remarks",              # K  (blank)
+        "SCOPE",                # L
+        "BaseRate 20",          # M
+        "BaseRate 40",          # N
+        "BaseRate 40H",         # O
+        "BaseRate 45",          # P
     ]
 
-    # Column widths (characters) matching the template
-    COL_WIDTHS = [8, 13, 13, 15, 32, 20, 20, 20, 20, 10, 12, 32,
-                  12, 12, 12, 12, 20, 22, 8, 32]
+    # Column widths (characters)
+    COL_WIDTHS = [8, 13, 13, 15, 32, 20, 20, 20, 20, 10, 12, 32, 12, 12, 12, 12]
 
     # Header cell style
     hdr_fill  = PatternFill(start_color="1F3864", end_color="1F3864", fill_type="solid")
@@ -188,20 +183,16 @@ async def export_excel(payload: ExportPayload):
             exp_date,
             _unwrap(rec.get("commodity",    {})),   # E
             _unwrap(rec.get("origin",       {})),   # F  origin_city
-            None,                                   # G  origin_via_city  — not extracted
+            None,                                   # G  origin_via_city — not extracted
             _unwrap(rec.get("destination",  {})),   # H  destination_city
             _unwrap(rec.get("via",          {})),   # I  destination_via_city
-            service,                                # J  CY/CY or SD/CY
+            service,                                # J
             None,                                   # K  Remarks
             _unwrap(rec.get("trade_lane",   {})),   # L  SCOPE
             _unwrap(rec.get("rate_20",      {})),   # M
             _unwrap(rec.get("rate_40",      {})),   # N
             _unwrap(rec.get("rate_40hc",    {})),   # O
             _unwrap(rec.get("rate_45",      {})),   # P
-            None,                                   # Q  AMS
-            None,                                   # R  HEA
-            None,                                   # S  AGW
-            None,                                   # T  RDS
         ]
         ws.append(row)
         for cell in ws[ws.max_row]:
@@ -211,7 +202,7 @@ async def export_excel(payload: ExportPayload):
     # Freeze the header row, auto-filter on row 1
     # ------------------------------------------------------------------
     ws.freeze_panes = "A2"
-    ws.auto_filter.ref = f"A1:T1"
+    ws.auto_filter.ref = "A1:P1"
 
     output = io.BytesIO()
     wb.save(output)

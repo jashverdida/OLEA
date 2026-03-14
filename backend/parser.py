@@ -360,11 +360,24 @@ def parse_rate_tables(full_text: str) -> list[dict]:
         )
         if comm_match:
             current_commodity = comm_match.group(1).strip()
-            # Strip trailing noise
+            # Strip trailing section keywords that may appear on the same line
             current_commodity = re.split(
                 r'\s+(?:ORIGIN|NOTE|SECTION|RATE)',
                 current_commodity, flags=re.IGNORECASE
             )[0].strip()
+            # Strip trailing origin-city text that got Y-merged onto the same line
+            # Pattern: "CITY NAME, ST, COUNTRY" or "CITY NAME, ST, COUNTRY(CY)"
+            city_match = re.search(
+                r'\s+[A-Z][A-Z\s]+,\s+[A-Z]{2},',
+                current_commodity
+            )
+            if city_match:
+                # Recover the origin from this line if not already set
+                raw_origin = current_commodity[city_match.start():].strip()
+                raw_origin = re.sub(r'\s*\([^)]*\)\s*$', '', raw_origin).strip()
+                if not current_origin:
+                    current_origin = raw_origin
+                current_commodity = current_commodity[:city_match.start()].strip()
             continue
 
         # --- Detect origin lines ---

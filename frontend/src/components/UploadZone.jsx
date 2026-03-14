@@ -42,8 +42,7 @@ export default function UploadZone({ onUpload }) {
       <div className="text-center">
         <h2 className="text-3xl font-bold text-white mb-3">Extraction Engine</h2>
         <p className="text-slate-400 text-base max-w-lg mx-auto leading-relaxed">
-          Drop a digital OLTK Service Contract PDF. All header fields and rate tables
-          extracted in under 3 seconds — locally, at zero cost.
+          Drop a Digital Service Contract PDF.
         </p>
       </div>
 
